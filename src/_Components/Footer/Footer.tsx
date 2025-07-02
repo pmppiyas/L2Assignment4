@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-200 py-10 px-6 mt-12">
+    <footer className="bg-slate-900 text-slate-200 py-10 px-6 ">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
         {/* Logo & Description */}
         <div className="flex-1 space-y-3">
