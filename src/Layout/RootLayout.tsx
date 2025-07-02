@@ -5,7 +5,7 @@ import { Outlet } from "react-router";
 
 export default function RootLayout() {
   return (
-    <div>
+    <div className="max-w-7xl mx-auto">
       <Navaber></Navaber>
       <Outlet></Outlet>
       <Footer></Footer>
