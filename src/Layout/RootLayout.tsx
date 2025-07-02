@@ -1,3 +1,4 @@
+import Footer from "@/_Components/Footer/Footer";
 import Navaber from "@/_Components/Navbar/Navaber";
 import React from "react";
 import { Outlet } from "react-router";
@@ -7,6 +8,7 @@ export default function RootLayout() {
     <div>
       <Navaber></Navaber>
       <Outlet></Outlet>
+      <Footer></Footer>
     </div>
   );
 }
