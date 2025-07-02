@@ -1,6 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { IBook } from "@/types";
+import type { RootState } from "@/Redux/store";
 
-const initialState = {
+interface InitialState {
+  book: IBook[];
+  filter: "all";
+}
+const initialState: InitialState = {
   book: [
     {
       title: "The Pragmatic Programmer",
@@ -13,14 +19,26 @@ const initialState = {
       available: true,
     },
   ],
+  filter: "all",
 };
+
+type DraftBook = Pick<
+  IBook,
+  "title" | "author" | "genre" | "ISBN" | "description" | "copies"
+>;
 
 const bookSlice = createSlice({
   name: "book",
   initialState,
-  reducers: {},
+  reducers: {
+    addBook: (state, action: PayloadAction<DraftBook>) => {
+      state.book.push(action.payload);
+    },
+  },
 });
 
-export const {} = bookSlice.actions;
-
+export const { addBook } = bookSlice.actions;
+export const selectBooks = (state: RootState) => {
+  return state.books.book;
+};
 export default bookSlice.reducer;

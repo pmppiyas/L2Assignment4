@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { addBook, selectBooks } from "@/Redux/features/book/bookSlice";
+import { useAppDispatch, useAppSelector } from "@/Redux/hook";
 import React, { useState } from "react";
 
-function AddBook() {
+function AddBookPage() {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [genre, setgenre] = useState("");
@@ -11,6 +13,9 @@ function AddBook() {
   const [description, setDescription] = useState("");
   const [copies, setCopies] = useState(0);
 
+  const dispatch = useAppDispatch();
+  const book = useAppSelector(selectBooks);
+  console.log("From state", book);
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -19,10 +24,10 @@ function AddBook() {
       author,
       genre,
       isbn,
-      description, 
+      description,
       copies,
     };
-    console.log(book);
+    dispatch(addBook(book));
   };
   return (
     <div className="min-h-[calc(100vh-68px)] w-full flex flex-col items-center justify-center">
@@ -96,4 +101,4 @@ function AddBook() {
   );
 }
 
-export default AddBook;
+export default AddBookPage;
