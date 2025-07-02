@@ -19,7 +19,7 @@ function AddBook() {
       author,
       genre,
       isbn,
-      description,
+      description, 
       copies,
     };
     console.log(book);
