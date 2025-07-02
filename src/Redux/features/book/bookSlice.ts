@@ -21,4 +21,6 @@ const bookSlice = createSlice({
   reducers: {},
 });
 
+export const {} = bookSlice.actions;
+
 export default bookSlice.reducer;
