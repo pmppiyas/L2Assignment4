@@ -16,9 +16,9 @@ function AddBookPage() {
   const dispatch = useAppDispatch();
   const book = useAppSelector(selectBooks);
   console.log("From state", book);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const book = {
       title,
       author,
