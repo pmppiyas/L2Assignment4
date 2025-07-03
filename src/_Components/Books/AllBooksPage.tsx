@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,27 +12,57 @@ import { useAppSelector } from "@/Redux/hook";
 import { BookOpen, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 import type { IBook } from "@/types";
+import { useGetBooksQuery, useUpdateBookMutation } from "@/Redux/Api/baseApi";
+import toast from "react-hot-toast";
 
 export function AllBooksPage() {
-  const books = useAppSelector(selectBooks);
+  const { data } = useGetBooksQuery(undefined);
+  const books = data?.data;
+  const [updateBook, { isLoading, isSuccess }] = useUpdateBookMutation();
   const [editBook, setEditBook] = useState<IBook | null>(null);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
 
   const handleEditClick = (book: IBook) => {
     setEditBook(book);
+    setOpenPopover(book.isbn);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editBook) return;
+
+    const bookId = editBook.id || editBook._id;
 
     const updatedBook = {
       ...editBook,
-      available: editBook.copies > 0,
     };
 
-    console.log("📘 Edited Book Data:", updatedBook);
+    try {
+      const response = await updateBook({
+        id: bookId,
+        data: updatedBook,
+      }).unwrap();
 
-    setEditBook(null);
+      toast.success("Book updated successfully");
+      setEditBook(null);
+      setOpenPopover(null);
+    } catch (error) {
+      //   console.error("❌ Update failed:", error);
+      toast.error("Failed to update book");
+    }
   };
+
+  const handleCancel = () => {
+    setEditBook(null);
+    setOpenPopover(null);
+  };
+
+  if (isLoading || !books) {
+    return (
+      <div className="min-h-[calc(100vh-68px)] w-full flex items-center justify-center">
+        <div>Loading books...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-68px)] w-full flex flex-col items-center">
@@ -54,11 +85,11 @@ export function AllBooksPage() {
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
             {books.map((book) => (
-              <tr key={book.ISBN}>
+              <tr key={book.ISBN || book._id}>
                 <td className="p-3 font-medium">{book.title}</td>
                 <td className="p-3">{book.author}</td>
                 <td className="p-3">{book.genre}</td>
-                <td className="p-3">{book.ISBN}</td>
+                <td className="p-3">{book.isbn}</td>
                 <td className="p-3">{book.copies}</td>
                 <td className="p-3">
                   {book.available ? (
@@ -68,7 +99,15 @@ export function AllBooksPage() {
                   )}
                 </td>
                 <td className="p-3 space-x-2 flex items-center">
-                  <Popover>
+                  <Popover
+                    open={openPopover === book.isbn}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        setOpenPopover(null);
+                        setEditBook(null);
+                      }
+                    }}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -80,7 +119,7 @@ export function AllBooksPage() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-96">
-                      {editBook && editBook.ISBN === book.ISBN && (
+                      {editBook && editBook.isbn === book.isbn && (
                         <div className="grid gap-4">
                           <h4 className="text-center font-semibold">
                             Edit Book
@@ -90,7 +129,7 @@ export function AllBooksPage() {
                               ["Title", "title"],
                               ["Author", "author"],
                               ["Genre", "genre"],
-                              ["ISBN", "ISBN"],
+                              ["ISBN", "isbn"],
                               ["Description", "description"],
                               ["Copies", "copies"],
                             ].map(([label, key]) => (
@@ -102,7 +141,7 @@ export function AllBooksPage() {
                                 <Input
                                   id={key}
                                   type={
-                                    key === "copies" || key === "ISBN"
+                                    key === "copies" || key === "isbn"
                                       ? "number"
                                       : "text"
                                   }
@@ -110,13 +149,14 @@ export function AllBooksPage() {
                                     editBook[key as keyof IBook]?.toString() ??
                                     ""
                                   }
+                                  disabled={key === "isbn"}
                                   onChange={(e) =>
                                     setEditBook((prev) =>
                                       prev
                                         ? {
                                             ...prev,
                                             [key]:
-                                              key === "copies" || key === "ISBN"
+                                              key === "copies" || key === "isbn"
                                                 ? Number(e.target.value)
                                                 : e.target.value,
                                           }
@@ -127,9 +167,18 @@ export function AllBooksPage() {
                                 />
                               </div>
                             ))}
-                            <Button className="mt-2" onClick={handleSave}>
-                              Save Changes
-                            </Button>
+                            <div className="flex gap-2 mt-2">
+                              <Button className="flex-1" onClick={handleSave}>
+                                Save Changes
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={handleCancel}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -139,7 +188,7 @@ export function AllBooksPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => console.log("Delete", book.ISBN)}
+                    onClick={() => console.log("Delete", book.ISBN || book._id)}
                   >
                     <Trash size={16} className="mr-1" />
                     Delete
@@ -147,7 +196,7 @@ export function AllBooksPage() {
 
                   <Button
                     size="sm"
-                    onClick={() => console.log("Borrow", book.ISBN)}
+                    onClick={() => console.log("Borrow", book.ISBN || book._id)}
                     disabled={!book.available}
                   >
                     <BookOpen size={16} className="mr-1" />
