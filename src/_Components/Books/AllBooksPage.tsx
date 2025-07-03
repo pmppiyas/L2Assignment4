@@ -12,15 +12,22 @@ import { useAppSelector } from "@/Redux/hook";
 import { BookOpen, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 import type { IBook } from "@/types";
-import { useGetBooksQuery, useUpdateBookMutation } from "@/Redux/Api/baseApi";
+import {
+  useDeleteBookMutation,
+  useGetBooksQuery,
+  useUpdateBookMutation,
+} from "@/Redux/Api/baseApi";
 import toast from "react-hot-toast";
 
 export function AllBooksPage() {
   const { data } = useGetBooksQuery(undefined);
   const books = data?.data;
   const [updateBook, { isLoading, isSuccess }] = useUpdateBookMutation();
+  const [deleteBook] = useDeleteBookMutation();
+
   const [editBook, setEditBook] = useState<IBook | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleEditClick = (book: IBook) => {
     setEditBook(book);
@@ -54,6 +61,16 @@ export function AllBooksPage() {
   const handleCancel = () => {
     setEditBook(null);
     setOpenPopover(null);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteBook(id).unwrap();
+      toast.success("Book deleted successfully");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete book");
+    }
   };
 
   if (isLoading || !books) {
@@ -98,7 +115,7 @@ export function AllBooksPage() {
                     <span className="text-red-500 font-semibold">No</span>
                   )}
                 </td>
-                <td className="p-3 space-x-2 flex items-center">
+                <td className="p-3 space-x-2 flex items-center ">
                   <Popover
                     open={openPopover === book.isbn}
                     onOpenChange={(open) => {
@@ -188,7 +205,7 @@ export function AllBooksPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => console.log("Delete", book.ISBN || book._id)}
+                    onClick={() => setConfirmDeleteId(book._id)}
                   >
                     <Trash size={16} className="mr-1" />
                     Delete
@@ -208,6 +225,33 @@ export function AllBooksPage() {
           </tbody>
         </table>
       </div>
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-xl w-[400px]">
+            <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+            <p className="text-sm mb-6">
+              Are you sure you want to delete this book?
+            </p>
+            <div className="flex justify-between gap-3">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  handleDelete(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                }}
+              >
+                Yes, Delete
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmDeleteId(null)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
