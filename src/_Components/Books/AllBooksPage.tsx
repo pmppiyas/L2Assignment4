@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,8 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { selectBooks } from "@/Redux/features/book/bookSlice";
-import { useAppSelector } from "@/Redux/hook";
 import { BookOpen, Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 import type { IBook } from "@/types";
@@ -18,6 +15,13 @@ import {
   useUpdateBookMutation,
 } from "@/Redux/Api/baseApi";
 import toast from "react-hot-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AllBooksPage() {
   const { data } = useGetBooksQuery(undefined);
@@ -44,7 +48,7 @@ export function AllBooksPage() {
     };
 
     try {
-      const response = await updateBook({
+      await updateBook({
         id: bookId,
         data: updatedBook,
       }).unwrap();
@@ -53,7 +57,7 @@ export function AllBooksPage() {
       setEditBook(null);
       setOpenPopover(null);
     } catch (error) {
-      //   console.error("❌ Update failed:", error);
+      //   console.error("Update failed:", error);
       toast.error("Failed to update book");
     }
   };
@@ -63,7 +67,7 @@ export function AllBooksPage() {
     setOpenPopover(null);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       await deleteBook(id).unwrap();
       toast.success("Book deleted successfully");
@@ -101,7 +105,7 @@ export function AllBooksPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
-            {books.map((book) => (
+            {books.map((book: IBook) => (
               <tr key={book.ISBN || book._id}>
                 <td className="p-3 font-medium">{book.title}</td>
                 <td className="p-3">{book.author}</td>
@@ -155,35 +159,68 @@ export function AllBooksPage() {
                                 className="grid grid-cols-3 items-center gap-2"
                               >
                                 <Label htmlFor={key}>{label}</Label>
-                                <Input
-                                  id={key}
-                                  type={
-                                    key === "copies" || key === "isbn"
-                                      ? "number"
-                                      : "text"
-                                  }
-                                  value={
-                                    editBook[key as keyof IBook]?.toString() ??
-                                    ""
-                                  }
-                                  disabled={key === "isbn"}
-                                  onChange={(e) =>
-                                    setEditBook((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            [key]:
-                                              key === "copies" || key === "isbn"
-                                                ? Number(e.target.value)
-                                                : e.target.value,
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className="col-span-2 h-8"
-                                />
+
+                                {key === "genre" ? (
+                                  <Select
+                                    value={editBook.genre}
+                                    onValueChange={(value) =>
+                                      setEditBook((prev) =>
+                                        prev ? { ...prev, genre: value } : prev
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="col-span-2 h-8 w-full">
+                                      <SelectValue placeholder="Select genre" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {[
+                                        "FICTION",
+                                        "NON_FICTION",
+                                        "SCIENCE",
+                                        "HISTORY",
+                                        "BIOGRAPHY",
+                                        "FANTASY",
+                                      ].map((genre) => (
+                                        <SelectItem key={genre} value={genre}>
+                                          {genre.replace("_", " ")}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <Input
+                                    id={key}
+                                    type={
+                                      key === "copies" || key === "isbn"
+                                        ? "number"
+                                        : "text"
+                                    }
+                                    value={
+                                      editBook[
+                                        key as keyof IBook
+                                      ]?.toString() ?? ""
+                                    }
+                                    disabled={key === "isbn"}
+                                    onChange={(e) =>
+                                      setEditBook((prev) =>
+                                        prev
+                                          ? {
+                                              ...prev,
+                                              [key]:
+                                                key === "copies" ||
+                                                key === "isbn"
+                                                  ? Number(e.target.value)
+                                                  : e.target.value,
+                                            }
+                                          : prev
+                                      )
+                                    }
+                                    className="col-span-2 h-8"
+                                  />
+                                )}
                               </div>
                             ))}
+
                             <div className="flex gap-2 mt-2">
                               <Button className="flex-1" onClick={handleSave}>
                                 Save Changes
