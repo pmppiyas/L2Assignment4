@@ -22,20 +22,19 @@ function AddBookPage() {
   const [copies, setCopies] = useState("");
 
   const [addBook, { isLoading }] = useAddBookMutation();
-
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
 
     const book = {
-      title: title,
-      author: author,
+      title,
+      author,
       genre,
       isbn: parseInt(isbn) || 0,
-      description: description,
+      description,
       copies: parseInt(copies) || 0,
     };
 
@@ -47,14 +46,13 @@ function AddBookPage() {
       setIsbn("");
       setDescription("");
       setCopies("");
-      setFieldErrors({});
-      toast.success("Book added successfully");
-      navigate("/books");
+      toast.success("📘 Book added successfully");
+      setTimeout(() => navigate("/books"), 1000);
     } catch (error) {
-      console.error("Error adding book:", error);
-      toast.error("Book added unsuccessfull");
+      toast.error("⚠️ Failed to add book");
+
       const issues = error?.data?.message?.issues;
-      const extractedErrors = {};
+      const extractedErrors: Record<string, string> = {};
 
       if (Array.isArray(issues)) {
         issues.forEach((issue) => {
@@ -68,6 +66,14 @@ function AddBookPage() {
     }
   };
 
+  const renderError = (field: string) =>
+    fieldErrors[field] && (
+      <div className="text-sm text-red-500 flex items-center gap-1 mt-1">
+        <span>⚠️</span>
+        <span>{fieldErrors[field]}</span>
+      </div>
+    );
+
   return (
     <div className="min-h-[calc(100vh-68px)] w-full flex flex-col items-center justify-center">
       <h2 className="font-medium text-2xl my-4">
@@ -78,6 +84,7 @@ function AddBookPage() {
         onSubmit={handleSubmit}
         className="space-y-4 py-4 px-4 lg:w-4/5 md:grid grid-cols-2 lg:grid-cols-3 gap-8 w-full"
       >
+        {/* Title */}
         <div className="space-y-1">
           <Label htmlFor="title">Title</Label>
           <Input
@@ -86,11 +93,10 @@ function AddBookPage() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter book title"
           />
-          {fieldErrors.title && (
-            <p className="text-sm text-red-500">{fieldErrors.title}</p>
-          )}
+          {renderError("title")}
         </div>
 
+        {/* Author */}
         <div className="space-y-1">
           <Label htmlFor="author">Author</Label>
           <Input
@@ -99,11 +105,10 @@ function AddBookPage() {
             onChange={(e) => setAuthor(e.target.value)}
             placeholder="Enter author name"
           />
-          {fieldErrors.author && (
-            <p className="text-sm text-red-500">{fieldErrors.author}</p>
-          )}
+          {renderError("author")}
         </div>
 
+        {/* Genre */}
         <div className="space-y-1">
           <Label htmlFor="genre">Genre</Label>
           <Select value={genre} onValueChange={(value) => setGenre(value)}>
@@ -125,11 +130,10 @@ function AddBookPage() {
               ))}
             </SelectContent>
           </Select>
-          {fieldErrors.genre && (
-            <p className="text-sm text-red-500">{fieldErrors.genre}</p>
-          )}
+          {renderError("genre")}
         </div>
 
+        {/* ISBN */}
         <div className="space-y-1">
           <Label htmlFor="isbn">ISBN</Label>
           <Input
@@ -139,11 +143,10 @@ function AddBookPage() {
             onChange={(e) => setIsbn(e.target.value)}
             placeholder="Enter ISBN"
           />
-          {fieldErrors.isbn && (
-            <p className="text-sm text-red-500">{fieldErrors.isbn}</p>
-          )}
+          {renderError("isbn")}
         </div>
 
+        {/* Description */}
         <div className="space-y-1">
           <Label htmlFor="description">Description</Label>
           <Input
@@ -152,11 +155,10 @@ function AddBookPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter book description"
           />
-          {fieldErrors.description && (
-            <p className="text-sm text-red-500">{fieldErrors.description}</p>
-          )}
+          {renderError("description")}
         </div>
 
+        {/* Copies */}
         <div className="space-y-1">
           <Label htmlFor="copies">Copies</Label>
           <Input
@@ -166,17 +168,20 @@ function AddBookPage() {
             onChange={(e) => setCopies(e.target.value)}
             placeholder="Number of copies"
           />
-          {fieldErrors.copies && (
-            <p className="text-sm text-red-500">{fieldErrors.copies}</p>
-          )}
+          {renderError("copies")}
         </div>
 
+        {/* General form error */}
         {fieldErrors.form && (
-          <div className="col-span-3 text-center">
-            <p className="text-sm text-red-500">{fieldErrors.form}</p>
+          <div className="col-span-3 text-center mt-2">
+            <p className="text-sm text-red-500 flex items-center justify-center gap-1">
+              <span>⚠️</span>
+              <span>{fieldErrors.form}</span>
+            </p>
           </div>
         )}
 
+        {/* Submit Button */}
         <div className="col-span-3 flex justify-center">
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Adding Book..." : "Submit"}

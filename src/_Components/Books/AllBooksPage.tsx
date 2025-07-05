@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Pencil, Trash } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { BookOpen, Pencil, Trash, ChevronDownIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -17,10 +18,16 @@ import {
 } from "@/components/ui/popover";
 import toast from "react-hot-toast";
 import type { IBook } from "@/types";
-import { useGetBooksQuery, useUpdateBookMutation } from "@/Redux/Api/baseApi";
+import {
+  useBorrowBookMutation,
+  useGetBooksQuery,
+  useUpdateBookMutation,
+} from "@/Redux/Api/baseApi";
 import BookPagination from "./BookPagination";
 import BookDelete from "./BookDelete";
 import FilterBook from "./FilterBook";
+
+import loadImg from "@/assets/loading.svg";
 
 export function AllBooksPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,7 +39,15 @@ export function AllBooksPage() {
 
   const [editBook, setEditBook] = useState<IBook | null>(null);
   const [openPopover, setOpenPopover] = useState<number | null>(null);
+
+  const [borrowId, setBorrowId] = useState("");
+  const [deuDate, setDeuDate] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [borrowBook, setBorrowBook] = useState<IBook | null>(null);
+  const [openCalender, setOpenCalender] = useState<boolean>(false);
+  const [openBorrowPop, setOpenBorrowPop] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showLoader, setShowLoader] = useState(true);
 
   const filterObj: Record<string, string> = {};
   if (genreFilter !== "ALL") filterObj.genre = genreFilter;
@@ -54,6 +69,7 @@ export function AllBooksPage() {
   const pagination = data?.pagination;
 
   const [updateBook] = useUpdateBookMutation();
+  const [borrowBookMutation] = useBorrowBookMutation();
 
   const handleEditClick = (book: IBook) => {
     setEditBook(book);
@@ -77,6 +93,36 @@ export function AllBooksPage() {
   const handleCancel = () => {
     setEditBook(null);
     setOpenPopover(null);
+    setBorrowBook(null);
+  };
+
+  const handleBorrowBook = (book: IBook) => {
+    setBorrowBook(book);
+    setBorrowId(book._id);
+    setOpenBorrowPop(book.isbn);
+  };
+
+  const handleBorrowSubmit = async () => {
+    try {
+      if (!borrowId || !deuDate || quantity <= 0) {
+        toast.error("Please fill all fields correctly.");
+        return;
+      }
+
+      const response = await borrowBookMutation({
+        book: borrowId,
+        quantity,
+        dueDate: deuDate,
+      }).unwrap();
+
+      toast.success("Book borrowed successfully");
+      setBorrowBook(null);
+      setOpenBorrowPop(null);
+      setQuantity(1);
+      setDeuDate("");
+    } catch (err: any) {
+      toast.error(err?.data?.error || "Failed to borrow book");
+    }
   };
 
   const handleReset = () => {
@@ -87,10 +133,18 @@ export function AllBooksPage() {
     setPage(1);
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoader(false);
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading || showLoader) {
     return (
       <div className="min-h-[calc(100vh-68px)] flex items-center justify-center">
-        Loading books...
+        <img src={loadImg} alt="Loading..." />
       </div>
     );
   }
@@ -272,10 +326,118 @@ export function AllBooksPage() {
                     Delete
                   </Button>
 
-                  <Button size="sm" disabled={!book.available}>
-                    <BookOpen size={16} className="mr-1" />
-                    Borrow
-                  </Button>
+                  {/* Borrow  */}
+                  <Popover
+                    open={openBorrowPop === book.isbn}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        setOpenBorrowPop(null);
+                        setBorrowBook(null);
+                      }
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={() => handleBorrowBook(book)}
+                        disabled={!book.available}
+                      >
+                        <BookOpen size={16} className="mr-1" />
+                        Borrow
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96">
+                      {borrowBook?.isbn === book.isbn && (
+                        <div className="grid gap-4">
+                          <h4 className="text-center font-semibold">
+                            Borrow Book
+                          </h4>
+
+                          <div className="grid gap-2">
+                            {/* ISBN (disabled) */}
+                            <div className="grid grid-cols-3 items-center gap-2">
+                              <Label htmlFor="borrowId">ISBN</Label>
+                              <Input
+                                id="borrowId"
+                                value={book.isbn}
+                                disabled
+                                className="col-span-2 h-8"
+                              />
+                            </div>
+
+                            {/* Quantity */}
+                            <div className="grid grid-cols-3 items-center gap-2">
+                              <Label htmlFor="quantity">Quantity</Label>
+                              <Input
+                                id="quantity"
+                                type="number"
+                                min={1}
+                                value={quantity}
+                                onChange={(e) =>
+                                  setQuantity(Number(e.target.value))
+                                }
+                                className="col-span-2 h-8"
+                              />
+                            </div>
+
+                            {/* Due Date */}
+                            <div className="grid grid-cols-3 items-center gap-2">
+                              <Label htmlFor="dueDate">Due Date</Label>
+
+                              <Popover
+                                open={openCalender}
+                                onOpenChange={setOpenCalender}
+                              >
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    id="date"
+                                    className="w-48 justify-between font-normal"
+                                  >
+                                    {deuDate
+                                      ? deuDate.toLocaleDateString()
+                                      : "Select date"}
+                                    <ChevronDownIcon />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  className="w-auto overflow-hidden p-0"
+                                  align="start"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={deuDate}
+                                    captionLayout="dropdown"
+                                    onSelect={(date) => {
+                                      setDeuDate(date);
+                                      setOpenCalender(false);
+                                    }}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                className="flex-1"
+                                onClick={handleBorrowSubmit}
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={handleCancel}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
                 </td>
               </tr>
             ))}
