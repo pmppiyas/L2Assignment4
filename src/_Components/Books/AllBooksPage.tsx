@@ -26,8 +26,8 @@ import {
 import BookPagination from "./BookPagination";
 import BookDelete from "./BookDelete";
 import FilterBook from "./FilterBook";
-
 import loadImg from "@/assets/loading.svg";
+import { useNavigate } from "react-router-dom";
 
 export function AllBooksPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,7 +49,7 @@ export function AllBooksPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showLoader, setShowLoader] = useState(true);
 
-  const filterObj: Record<string, string> = {};
+  const filterObj = {};
   if (genreFilter !== "ALL") filterObj.genre = genreFilter;
   if (searchTerm) filterObj.search = searchTerm;
 
@@ -71,6 +71,7 @@ export function AllBooksPage() {
   const [updateBook] = useUpdateBookMutation();
   const [borrowBookMutation] = useBorrowBookMutation();
 
+  const navigate = useNavigate();
   const handleEditClick = (book: IBook) => {
     setEditBook(book);
     setOpenPopover(book.isbn);
@@ -109,18 +110,19 @@ export function AllBooksPage() {
         return;
       }
 
-      const response = await borrowBookMutation({
+      await borrowBookMutation({
         book: borrowId,
         quantity,
         dueDate: deuDate,
       }).unwrap();
 
       toast.success("Book borrowed successfully");
+      navigate("/borrow-summary");
       setBorrowBook(null);
       setOpenBorrowPop(null);
       setQuantity(1);
       setDeuDate("");
-    } catch (err: any) {
+    } catch (err) {
       toast.error(err?.data?.error || "Failed to borrow book");
     }
   };
