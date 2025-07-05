@@ -9,7 +9,13 @@ export const baseApi = createApi({
   tagTypes: ["Book"],
   endpoints: (builder) => ({
     getBooks: builder.query({
-      query: () => "/books",
+      query: ({ filter, ...rest }) => {
+        const params = {
+          ...rest,
+          filter: typeof filter === "object" ? JSON.stringify(filter) : filter,
+        };
+        return { url: "/books", params };
+      },
       providesTags: ["Book"],
     }),
     addBook: builder.mutation({
