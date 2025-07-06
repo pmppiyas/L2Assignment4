@@ -1,69 +1,102 @@
-# React + TypeScript + Vite
+# 📚 Minimal Library Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a **fully client-side application** built with **React**, **Redux Toolkit Query**, and **TypeScript**, designed to manage books and borrowing records simply and efficiently. The goal was to practice frontend architecture, state management, and seamless API integration using a clean UI—**without authentication, payments, or filters**.
 
-Currently, two official plugins are available:
+🛠️ I built both the frontend and backend from scratch, connecting a modular Express.js API with a MongoDB database. It’s fully responsive, shows real-time updates, and includes validation and success notifications for smoother UX.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🌐 Live Links
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- 🔗 Frontend: [https://l2-assignment4-lac.vercel.app]
+- 🔗 Backend: [https://lv2-assignment03.vercel.app]
+- 💻 GitHub Repo (Frontend): [https://github.com/pmppiyas/L2Assignment4]
+- 💻 GitHub Repo (Backend): [https://github.com/pmppiyas/Lv2Assignment03]
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🔧 Technologies Used
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**Frontend**
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- React + TypeScript
+- Redux Toolkit + RTK Query
+- Tailwind CSS
+- React Router DOM
+- Toast Notification (sonner)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Backend**
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Node.js + Express.js
+- MongoDB + Mongoose
+- Zod for validation
+- MVC pattern
+
+---
+
+## ✨ Features Overview
+
+### 📖 Book Management
+- View all books in table format (Title, Author, Genre, ISBN, Copies, Availability)
+- Add new book with form validation
+- Edit existing book (modal or route-based)
+- Delete book with confirmation
+- Business logic:
+  - Quantity can’t go above total copies
+  - If copies hit 0, book becomes unavailable
+
+### 📦 Borrowing
+- Borrow form with quantity & due date
+- Quantity limited by availability
+- Borrow summary page shows all borrowed books
+- Aggregated data via API: book title, ISBN, total quantity
+
+---
+
+
+## 📲 UI & UX
+
+- Minimal and clean with Tailwind CSS
+- Fully responsive (mobile, tab, desktop)
+- Easy navigation, modals, and toasts
+- Instant UI update after any action (add/edit/delete/borrow)
+
+
+
+---
+
+## ⚙️ Backend Highlights
+
+- Modular MVC structure with clean separation
+- Validation via Zod
+- Book & Borrow CRUD with business rules
+- Aggregation for borrow summary
+- Pagination-ready endpoints
+- Optional auth middleware added for future extension
+
+---
+
+## 📈 Possible Improvements (Future Plan)
+
+- Add category filters or search
+- Return tracking and overdue logic
+- Auth system with user roles
+- Export data as CSV or PDF
+
+---
+
+## 🧑‍💻 Developer
+
+**👋 Hi, I'm Prince**  
+Junior Full Stack Web Developer  
+🚀 I specialize in clean backend logic, responsive UI, and thoughtful API architecture.  
+🧠 MongoDB and RTK Query are my zones.
+
+📫 Connect with me:  
+[LinkedIn](#) • [GitHub](#) • [https://pmppiyas.vercel.com](#)
+
+---
+
+## 🪪 License
+
+This project is licensed under [MIT License](LICENSE).
