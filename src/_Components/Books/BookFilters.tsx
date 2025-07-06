@@ -111,23 +111,27 @@ export function BookSearchFilters({
     { value: 100, label: "100 per page" },
   ];
 
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = (key: keyof FilterState, value: string | number) => {
     onFiltersChange({
       ...filters,
       [key]: value,
-      page: 1, // Reset to first page when filters change
+      page: 1,
     });
   };
 
   const updateNestedFilter = (
     parentKey: string,
     childKey: string,
-    value: any
+    value: string
   ) => {
+    const parentObj = filters[parentKey as keyof FilterState];
+
     onFiltersChange({
       ...filters,
       [parentKey]: {
-        ...filters[parentKey as keyof FilterState],
+        ...(typeof parentObj === "object" && parentObj !== null
+          ? parentObj
+          : {}),
         [childKey]: value,
       },
       page: 1,

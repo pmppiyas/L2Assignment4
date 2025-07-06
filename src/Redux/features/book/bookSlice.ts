@@ -12,7 +12,7 @@ const initialState: InitialState = {
       title: "The Pragmatic Programmer",
       author: "Andrew Hunt & David Thomas",
       genre: "Technology",
-      ISBN: 9780201616224,
+      isbn: 9780201616224,
       description:
         "A modern classic that guides software developers on how to think, design, and code pragmatically.",
       copies: 5,
@@ -24,7 +24,7 @@ const initialState: InitialState = {
 
 type DraftBook = Pick<
   IBook,
-  "title" | "author" | "genre" | "ISBN" | "description" | "copies"
+  "title" | "author" | "genre" | "isbn" | "description" | "copies"
 >;
 
 const bookSlice = createSlice({
@@ -32,7 +32,10 @@ const bookSlice = createSlice({
   initialState,
   reducers: {
     addBook: (state, action: PayloadAction<DraftBook>) => {
-      state.book.push(action.payload);
+      state.book.push({
+        ...action.payload,
+        available: true,
+      });
     },
   },
 });

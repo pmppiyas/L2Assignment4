@@ -7,7 +7,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React from "react";
+
+type FilterBookProps = {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  sortOption: string;
+  setSortOption?: (value: string) => void;
+  sortOrder: string;
+  setSortOrder: (value: "asc" | "desc") => void;
+  genreFilter: string;
+  setGenreFilter: (value: string) => void;
+  handleReset: () => void;
+};
 
 function FilterBook({
   searchTerm,
@@ -19,7 +30,7 @@ function FilterBook({
   genreFilter,
   setGenreFilter,
   handleReset,
-}) {
+}: FilterBookProps) {
   const GENRES = [
     "FICTION",
     "NON_FICTION",
@@ -66,7 +77,11 @@ function FilterBook({
 
         <Select
           value={sortOrder}
-          onValueChange={(v) => setSortOrder(v)}
+          onValueChange={(v: string) => {
+            if (v === "asc" || v === "desc") {
+              setSortOrder(v);
+            }
+          }}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Order" />

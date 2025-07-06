@@ -1,7 +1,7 @@
 import { useAllBorrowsQuery } from "@/Redux/Api/baseApi";
 
 export default function AllBorrows() {
-  const { data, isLoading, error } = useAllBorrowsQuery();
+  const { data, isLoading, error } = useAllBorrowsQuery(undefined);
 
   if (isLoading) {
     return (
@@ -26,20 +26,30 @@ export default function AllBorrows() {
       </h2>
       <div className="w-full max-w-2xl space-y-3 px-4">
         {data?.data?.length > 0 ? (
-          data.data.map((item, index) => (
-            <div
-              key={index}
-              className="border p-4 rounded shadow-sm flex justify-between items-center"
-            >
-              <div>
-                <p className="font-semibold text-lg">{item.book.title}</p>
-                <p className="text-sm text-gray-600">ISBN: {item.book.isbn}</p>
+          data.data.map(
+            (
+              item: {
+                book: { title: string; isbn: string };
+                totalQuantity: number;
+              },
+              index: number
+            ) => (
+              <div
+                key={index}
+                className="border p-4 rounded shadow-sm flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-semibold text-lg">{item.book.title}</p>
+                  <p className="text-sm text-gray-600">
+                    ISBN: {item.book.isbn}
+                  </p>
+                </div>
+                <p className="font-bold text-blue-600">
+                  Borrowed: {item.totalQuantity}
+                </p>
               </div>
-              <p className="font-bold text-blue-600">
-                Borrowed: {item.totalQuantity}
-              </p>
-            </div>
-          ))
+            )
+          )
         ) : (
           <p>No borrow data available.</p>
         )}

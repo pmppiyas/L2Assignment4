@@ -2,7 +2,12 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { useDeleteBookMutation } from "@/Redux/Api/baseApi";
 
-function BookDelete({ bookId, setConfirmDeleteId }) {
+interface BookDeleteProps {
+  bookId: string;
+  setConfirmDeleteId: (id: string | null) => void;
+}
+
+function BookDelete({ bookId, setConfirmDeleteId }: BookDeleteProps) {
   const [deleteBook] = useDeleteBookMutation();
 
   const handleDelete = async (id: string) => {

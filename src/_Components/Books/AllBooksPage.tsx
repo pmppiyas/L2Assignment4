@@ -29,6 +29,11 @@ import FilterBook from "./FilterBook";
 import loadImg from "@/assets/loading.svg";
 import { useNavigate } from "react-router-dom";
 
+interface FilterObj {
+  genre?: string;
+  search?: string;
+}
+
 export function AllBooksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [genreFilter, setGenreFilter] = useState("ALL");
@@ -41,7 +46,7 @@ export function AllBooksPage() {
   const [openPopover, setOpenPopover] = useState<number | null>(null);
 
   const [borrowId, setBorrowId] = useState("");
-  const [deuDate, setDeuDate] = useState("");
+  const [deuDate, setDeuDate] = useState<Date | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const [borrowBook, setBorrowBook] = useState<IBook | null>(null);
   const [openCalender, setOpenCalender] = useState<boolean>(false);
@@ -49,7 +54,7 @@ export function AllBooksPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showLoader, setShowLoader] = useState(true);
 
-  const filterObj = {};
+  const filterObj: FilterObj = {};
   if (genreFilter !== "ALL") filterObj.genre = genreFilter;
   if (searchTerm) filterObj.search = searchTerm;
 
@@ -72,6 +77,7 @@ export function AllBooksPage() {
   const [borrowBookMutation] = useBorrowBookMutation();
 
   const navigate = useNavigate();
+
   const handleEditClick = (book: IBook) => {
     setEditBook(book);
     setOpenPopover(book.isbn);
@@ -79,7 +85,8 @@ export function AllBooksPage() {
 
   const handleSave = async () => {
     if (!editBook) return;
-    const bookId = editBook.id || editBook._id;
+
+    const bookId = editBook._id?.toString() || editBook.isbn.toString();
 
     try {
       await updateBook({ id: bookId, data: editBook }).unwrap();
@@ -99,7 +106,7 @@ export function AllBooksPage() {
 
   const handleBorrowBook = (book: IBook) => {
     setBorrowBook(book);
-    setBorrowId(book._id);
+    setBorrowId(book._id?.toString() || book.isbn.toString());
     setOpenBorrowPop(book.isbn);
   };
 
@@ -113,7 +120,7 @@ export function AllBooksPage() {
       await borrowBookMutation({
         book: borrowId,
         quantity,
-        dueDate: deuDate,
+        dueDate: deuDate.toISOString(),
       }).unwrap();
 
       toast.success("Book borrowed successfully");
@@ -121,9 +128,9 @@ export function AllBooksPage() {
       setBorrowBook(null);
       setOpenBorrowPop(null);
       setQuantity(1);
-      setDeuDate("");
+      setDeuDate(undefined);
     } catch (err) {
-      toast.error(err?.data?.error || "Failed to borrow book");
+      toast.error((err as any)?.data?.error || "Failed to borrow book");
     }
   };
 
@@ -133,6 +140,10 @@ export function AllBooksPage() {
     setSortOption("title");
     setSortOrder("asc");
     setPage(1);
+  };
+
+  const handleSortOrderChange = (value: "asc" | "desc") => {
+    setSortOrder(value);
   };
 
   useEffect(() => {
@@ -170,13 +181,13 @@ export function AllBooksPage() {
         sortOption={sortOption}
         setSortOption={setSortOption}
         sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
+        setSortOrder={handleSortOrderChange}
         genreFilter={genreFilter}
         setGenreFilter={setGenreFilter}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         handleReset={handleReset}
-      ></FilterBook>
+      />
 
       {/* Book Table */}
       <div className="w-full overflow-x-auto px-4">
@@ -234,14 +245,16 @@ export function AllBooksPage() {
                             Edit Book
                           </h4>
                           <div className="grid gap-2">
-                            {[
-                              ["Title", "title"],
-                              ["Author", "author"],
-                              ["Genre", "genre"],
-                              ["ISBN", "isbn"],
-                              ["Description", "description"],
-                              ["Copies", "copies"],
-                            ].map(([label, key]) => (
+                            {(
+                              [
+                                ["Title", "title"],
+                                ["Author", "author"],
+                                ["Genre", "genre"],
+                                ["ISBN", "isbn"],
+                                ["Description", "description"],
+                                ["Copies", "copies"],
+                              ] as [string, keyof IBook][]
+                            ).map(([label, key]) => (
                               <div
                                 key={key}
                                 className="grid grid-cols-3 items-center gap-2"
@@ -250,7 +263,7 @@ export function AllBooksPage() {
 
                                 {key === "genre" ? (
                                   <Select
-                                    value={editBook.genre}
+                                    value={editBook ? editBook.genre : ""}
                                     onValueChange={(value) =>
                                       setEditBook((prev) =>
                                         prev ? { ...prev, genre: value } : prev
@@ -277,9 +290,14 @@ export function AllBooksPage() {
                                         : "text"
                                     }
                                     value={
-                                      editBook[
-                                        key as keyof IBook
-                                      ]?.toString() ?? ""
+                                      editBook &&
+                                      typeof editBook[key] !== "undefined"
+                                        ? String(
+                                            editBook[key as keyof IBook] as
+                                              | string
+                                              | number
+                                          )
+                                        : ""
                                     }
                                     disabled={key === "isbn"}
                                     onChange={(e) =>
@@ -322,7 +340,11 @@ export function AllBooksPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => setConfirmDeleteId(book._id)}
+                    onClick={() =>
+                      setConfirmDeleteId(
+                        book._id?.toString() || book.isbn.toString()
+                      )
+                    }
                   >
                     <Trash size={16} className="mr-1" />
                     Delete
@@ -356,7 +378,6 @@ export function AllBooksPage() {
                           </h4>
 
                           <div className="grid gap-2">
-                            {/* ISBN (disabled) */}
                             <div className="grid grid-cols-3 items-center gap-2">
                               <Label htmlFor="borrowId">ISBN</Label>
                               <Input
@@ -448,17 +469,14 @@ export function AllBooksPage() {
       </div>
 
       {/* Pagination */}
-      <BookPagination
-        pagination={pagination}
-        setPage={setPage}
-      ></BookPagination>
+      <BookPagination pagination={pagination} setPage={setPage} />
 
       {/* Delete Confirm Modal */}
       {confirmDeleteId && (
         <BookDelete
           bookId={confirmDeleteId}
           setConfirmDeleteId={setConfirmDeleteId}
-        ></BookDelete>
+        />
       )}
     </div>
   );

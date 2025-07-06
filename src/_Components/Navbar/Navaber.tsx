@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Menu, X } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -7,7 +7,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <header className="bg-white dark:bg-slate-900 shadow-md px-4 py-3">
@@ -63,7 +63,7 @@ export default function Navbar() {
 
         {/* Mobile Toggle */}
         <div className="flex gap-4">
-          <ModeToggle size={24}></ModeToggle>
+          <ModeToggle />
           <button
             className="md:hidden"
             onClick={() => setIsOpen(!isOpen)}

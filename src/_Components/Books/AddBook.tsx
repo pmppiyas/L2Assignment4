@@ -49,9 +49,20 @@ function AddBookPage() {
       toast.success("📘 Book added successfully");
       setTimeout(() => navigate("/books"), 1000);
     } catch (error) {
-      toast.error("⚠️ Failed to add book");
-
-      const issues = error?.data?.message?.issues;
+      let issues;
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "data" in error &&
+        typeof error.data === "object" &&
+        error.data !== null &&
+        "message" in error.data &&
+        typeof error.data.message === "object" &&
+        error.data.message !== null &&
+        "issues" in error.data.message
+      ) {
+        issues = error.data.message.issues;
+      }
       const extractedErrors: Record<string, string> = {};
 
       if (Array.isArray(issues)) {
