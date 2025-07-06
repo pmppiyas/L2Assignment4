@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { BookOpen, Pencil, Trash, ChevronDownIcon } from "lucide-react";
+import {
+  BookOpen,
+  Pencil,
+  Trash,
+  ReceiptText,
+  ChevronDownIcon,
+} from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -145,6 +151,10 @@ export function AllBooksPage() {
   const handleSortOrderChange = (value: "asc" | "desc") => {
     setSortOrder(value);
   };
+  const handleDetails = (id: string): void => {
+    navigate(`/books/${id}`);
+    console.log(id);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -219,6 +229,18 @@ export function AllBooksPage() {
                   )}
                 </td>
                 <td className="p-3 space-x-2 flex items-center">
+                  <Button
+                    className="bg-blue-500"
+                    size="sm"
+                    onClick={() => {
+                      if (book._id) {
+                        handleDetails(book._id.toString());
+                      }
+                    }}
+                  >
+                    <ReceiptText size={16} className="mr-1" />
+                    Details
+                  </Button>
                   <Popover
                     open={openPopover === book.isbn}
                     onOpenChange={(open) => {
